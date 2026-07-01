@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Florida School Grades Dashboard</title>
+    
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+
+    <style>
+        /* --- Datawrapper-Inspired Newsroom Theme --- */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: #333333;
+            background-color: #ffffff;
+            margin: 0;
+            padding: 5px;
+        }
+
+        .table-container {
+            max-width: 100%;
+            margin: 0 auto;
+        }
+
+        /* Search & Filter Component Overrides */
+        .dataTables_wrapper {
+            position: relative;
+            clear: both;
+        }
+
+        .dataTables_wrapper .dataTables_filter {
+            float: left !important;
+            text-align: left !important;
+            margin-bottom: 20px;
+        }
+
+        .dataTables_wrapper .dataTables_filter input {
+            border: 1px solid #cccccc !important;
+            border-radius: 4px !important;
+            padding: 8px 12px !important;
+            font-size: 14px !important;
+            width: 280px !important;
+            outline: none !important;
+            background-color: #ffffff !important;
+            transition: border-color 0.15s ease-in-out;
+        }
+
+        .dataTables_wrapper .dataTables_filter input:focus {
+            border-color: #888888 !important;
+        }
+
+        .dataTables_wrapper .dataTables_length {
+            float: right !important;
+            font-size: 13px;
+            color: #666666;
+            margin-bottom: 20px;
+            padding-top: 6px;
+        }
+
+        .dataTables_wrapper .dataTables_length select {
+            border: 1px solid #cccccc;
+            border-radius: 4px;
+            padding: 4px 8px;
+            background-color: #fff;
+        }
+
+        /* Structural Grid Elements */
+        table.dataTable {
+            border-collapse: collapse !important;
+            width: 100% !important;
+            margin: 15px 0 !important;
+            border-top: 1px solid #333333 !important;
+            border-bottom: 1px solid #333333 !important;
+        }
+
+        table.dataTable thead th {
+            font-size: 12px !important;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            font-weight: 700 !important;
+            color: #555555 !important;
+            padding: 12px 10px !important;
+            border-bottom: 1px solid #333333 !important;
+            border-top: none !important;
+            background-color: #ffffff !important;
+        }
+
+        table.dataTable tbody td {
+            font-size: 13.5px !important;
+            padding: 10px 10px !important;
+            border-bottom: 1px solid #ebeeec !important;
+            color: #333333;
+        }
+
+        /* Table Sorting UI Customization */
+        table.dataTable thead th.sorting,
+        table.dataTable thead th.sorting_asc,
+        table.dataTable thead th.sorting_desc {
+            background-image: none !important;
+            position: relative;
+            cursor: pointer;
+        }
+        table.dataTable thead th.sorting::after { content: " ↕"; font-size: 11px; color: #bbbbbb; padding-left: 4px; }
+        table.dataTable thead th.sorting_asc::after { content: " ▲"; font-size: 10px; color: #111111; padding-left: 4px; }
+        table.dataTable thead th.sorting_desc::after { content: " ▼"; font-size: 10px; color: #111111; padding-left: 4px; }
+
+        /* Row Interactivity */
+        table.dataTable tbody tr { background-color: #ffffff !important; }
+        table.dataTable tbody tr:hover { background-color: #f7f7f7 !important; }
+
+        /* Datawrapper Category Pill Styling */
+        .grade-badge {
+            display: inline-block;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            text-align: center;
+            min-width: 14px;
+        }
+        .grade-A { background-color: #e6f4ea; color: #137333; }
+        .grade-B { background-color: #f1f8e9; color: #33691e; }
+        .grade-C { background-color: #fef7e0; color: #b06000; }
+        .grade-D { background-color: #ffe0b2; color: #e65100; }
+        .grade-F { background-color: #fce8e6; color: #c5221f; }
+
+        /* Bottom Control Bar Layout */
+        .dataTables_wrapper .dataTables_info {
+            float: left !important;
+            font-size: 12.5px !important;
+            color: #666666 !important;
+            padding-top: 16px !important;
+        }
+
+        .dataTables_wrapper .dataTables_paginate {
+            float: right !important;
+            padding-top: 14px !important;
+        }
+
+        .dataTables_wrapper .dataTables_paginate .paginate_button {
+            padding: 5px 12px !important;
+            font-size: 12.5px !important;
+            border-radius: 4px !important;
+            border: 1px solid transparent !important;
+            color: #555555 !important;
+            background: none !important;
+        }
+
+        .dataTables_wrapper .dataTables_paginate .paginate_button.current,
+        .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+            background-color: #f0f0f0 !important;
+            border: 1px solid #dbdbdb !important;
+            color: #333333 !important;
+            font-weight: 600 !important;
+        }
+
+        .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+            background-color: #f9f9f9 !important;
+            border: 1px solid #dcdcdc !important;
+            color: #111111 !important;
+        }
+
+        /* Mobile Breakpoints to Keep Tables Responsive */
+        @media (max-width: 640px) {
+            .dataTables_wrapper .dataTables_filter,
+            .dataTables_wrapper .dataTables_length {
+                float: none !important;
+                text-align: left !important;
+                width: 100%;
+            }
+            .dataTables_wrapper .dataTables_filter input {
+                width: 100% !important;
+                margin-bottom: 10px;
+            }
+            .dataTables_wrapper .dataTables_length {
+                margin-bottom: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="table-container">
+    <div style="overflow-x: auto; width: 100%;">
+        <table id="grades-table" class="display" style="width:100%">
+            <thead>
+                <tr>
+                    <th>County</th>
+                    <th>School Name</th>
+                    <th>2026 Grade</th>
+                    <th>2025 Grade</th>
+                    <th>2024 Grade</th>
+                </tr>
+            </thead>
+            <tbody>
+                </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    // Custom functional renderer matching Datawrapper badge standards
+    function renderGradeBadge(data, type, row) {
+        if (!data) return '—';
+        var cleanGrade = data.trim().toUpperCase();
+        if (['A', 'B', 'C', 'D', 'F'].includes(cleanGrade)) {
+            return '<span class="grade-badge grade-' + cleanGrade + '">' + cleanGrade + '</span>';
+        }
+        return data; // Returns text unaltered if it holds alternative codes (e.g., "I", "P")
+    }
+
+    // Parse the external CSV file sitting locally in your workspace folder
+    Papa.parse("school_grades.csv", {
+        download: true,
+        header: true,
+        skipEmptyLines: true,
+        complete: function(results) {
+            
+            // Core DataTable initialization configuration
+            $('#grades-table').DataTable({
+                data: results.data,
+                columns: [
+                    { data: 'County', className: 'dt-left' },
+                    { data: 'School name', className: 'dt-left' },
+                    { data: '2026 school grade', className: 'dt-center', render: renderGradeBadge },
+                    { data: '2025 school grade', className: 'dt-center', render: renderGradeBadge },
+                    { data: '2024 school grade', className: 'dt-center', render: renderGradeBadge }
+                ],
+                pageLength: 25,
+                order: [[0, 'asc'], [1, 'asc']], // Alphabetize initially by County then School
+                language: {
+                    search: "_INPUT_",
+                    searchPlaceholder: "Search schools or counties...",
+                    lengthMenu: "Show _MENU_ rows",
+                    info: "Showing _START_ to _END_ of _TOTAL_ schools",
+                    paginate: {
+                        next: "Next →",
+                        previous: "← Previous"
+                    }
+                }
+            });
+        },
+        error: function(err) {
+            console.error("Error reading CSV file. Confirm matching header spellings.", err);
+        }
+    });
+});
+</script>
+
+</body>
+</html>
