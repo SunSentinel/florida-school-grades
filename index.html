@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Florida School Grades Dashboard</title>
+    <title>Florida school grades</title>
     
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
@@ -24,6 +24,40 @@
         .table-container {
             max-width: 100%;
             margin: 0 auto;
+        }
+
+        /* Journalistic Copy Header Styles */
+        .chart-header {
+            margin-bottom: 22px;
+        }
+
+        .chart-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #111111;
+            margin: 0 0 6px 0;
+            line-height: 1.2;
+        }
+
+        .chart-intro {
+            font-size: 14px;
+            color: #555555;
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        /* Source Footnote Styles */
+        .chart-footer {
+            margin-top: 20px;
+            padding-top: 12px;
+            border-top: 1px solid #ebeeec;
+        }
+
+        .chart-source {
+            font-size: 11px;
+            color: #666666;
+            letter-spacing: 0.02em;
+            margin: 0;
         }
 
         /* Search & Filter Component Overrides */
@@ -185,12 +219,17 @@
 <body>
 
 <div class="table-container">
+    <header class="chart-header">
+        <h1 class="chart-title">Florida school grades</h1>
+        <p class="chart-intro">Search for a specific school or sort the columns to see grades for the most recent three years.</p>
+    </header>
+
     <div style="overflow-x: auto; width: 100%;">
         <table id="grades-table" class="display" style="width:100%">
             <thead>
                 <tr>
-                    <th>County</th>
-                    <th>School Name</th>
+                    <th>District</th>
+                    <th>School</th>
                     <th>2026 Grade</th>
                     <th>2025 Grade</th>
                     <th>2024 Grade</th>
@@ -200,6 +239,10 @@
                 </tbody>
         </table>
     </div>
+
+    <footer class="chart-footer">
+        <p class="chart-source">SOURCE: Florida Department of Education's School Accountability Reports</p>
+    </footer>
 </div>
 
 <script>
@@ -211,7 +254,7 @@ $(document).ready(function() {
         if (['A', 'B', 'C', 'D', 'F'].includes(cleanGrade)) {
             return '<span class="grade-badge grade-' + cleanGrade + '">' + cleanGrade + '</span>';
         }
-        return data; // Returns text unaltered if it holds alternative codes (e.g., "I", "P")
+        return data; 
     }
 
     // Parse the external CSV file sitting locally in your workspace folder
@@ -225,17 +268,17 @@ $(document).ready(function() {
             $('#grades-table').DataTable({
                 data: results.data,
                 columns: [
-                    { data: 'County', className: 'dt-left' },
-                    { data: 'School name', className: 'dt-left' },
-                    { data: '2026 school grade', className: 'dt-center', render: renderGradeBadge },
-                    { data: '2025 school grade', className: 'dt-center', render: renderGradeBadge },
-                    { data: '2024 school grade', className: 'dt-center', render: renderGradeBadge }
+                    { data: 'District', className: 'dt-left' },
+                    { data: 'School', className: 'dt-left' },
+                    { data: '2026 grade', className: 'dt-center', render: renderGradeBadge },
+                    { data: '2025 grade', className: 'dt-center', render: renderGradeBadge },
+                    { data: '2024 grade', className: 'dt-center', render: renderGradeBadge }
                 ],
                 pageLength: 25,
-                order: [[0, 'asc'], [1, 'asc']], // Alphabetize initially by County then School
+                order: [[0, 'asc'], [1, 'asc']], // Alphabetize by District, then School
                 language: {
                     search: "_INPUT_",
-                    searchPlaceholder: "Search schools or counties...",
+                    searchPlaceholder: "Search schools or districts...",
                     lengthMenu: "Show _MENU_ rows",
                     info: "Showing _START_ to _END_ of _TOTAL_ schools",
                     paginate: {
